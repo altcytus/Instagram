@@ -39,12 +39,12 @@ def generate_ai_caption(topic):
     return ""
 
 # 3. UI LAYOUT
-st.title("📸 InstaGrowth AI Predictor")
+st.title("Instagram AI Predictor")
 st.write("Generate AI captions and predict your engagement rate instantly.")
 
 # Sidebar for AI Generation
-st.sidebar.title("🤖 Gemini AI Assistant")
-topic_idea = st.sidebar.text_input("Enter a topic (e.g., Summer Travel):")
+st.sidebar.title("Gemini AI Assistant")
+topic_idea = st.sidebar.text_input("Enter a topic (e.g Summer Travel):")
 
 if st.sidebar.button("Generate with Gemini"):
     if topic_idea:
@@ -89,5 +89,6 @@ if st.button("Predict Engagement", type="primary"):
             st.success("Great tone, the post looks ready to go.")
     else:
         st.error("Please write or generate a caption first.")
+
 
 
