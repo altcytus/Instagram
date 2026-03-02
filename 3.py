@@ -11,8 +11,8 @@ nltk.download('punkt_tab') # Required for newer versions of TextBlob
 
 # 1. SETUP OPENAI (You need an API key from platform.openai.com)
 # For a school project, you can hardcode it or use an environment variable
-os.environ["OPENAI_API_KEY"] = "your-api-key-here" 
-client = openai.OpenAI()
+# Replace the os.environ line with this:
+client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # 2. LOAD & TRAIN PREDICTIVE MODEL
 df = pd.read_csv("instagram_data.csv")
@@ -63,5 +63,6 @@ if st.button("Predict Engagement"):
     st.write(f"**Sentiment:** {round(sentiment, 2)}")
     if sentiment < 0:
         st.info("💡 **AI Tip:** Posts with positive sentiment usually perform 15% better in this niche.")
+
 
 
