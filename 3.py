@@ -5,7 +5,6 @@ from textblob import TextBlob
 import google.generativeai as genai
 import nltk
 
-# 1. INITIAL SETUP & DATA
 @st.cache_resource
 def setup_nltk():
     nltk.download('punkt')
@@ -13,7 +12,7 @@ def setup_nltk():
 
 setup_nltk()
 
-# Setup Gemini
+#Gemini
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
     gemini_model = genai.GenerativeModel('gemini-2.5-flash')
@@ -21,13 +20,13 @@ except Exception as e:
     st.error("Gemini API Key missing in Secrets!")
     gemini_model = None
 
-# Train the Predictive Model
+#Train the Predictive Model
 df = pd.read_csv("instagram_data.csv")
 X = df[["caption_length", "hashtag_count", "sentiment_score", "post_hour"]]
 y = df["engagement_rate"]
 model = LinearRegression().fit(X, y)
 
-# 2. HELPER FUNCTIONS
+#HELPER FUNCTIONS
 def generate_ai_caption(topic):
     if gemini_model:
         try:
@@ -38,7 +37,7 @@ def generate_ai_caption(topic):
             return f"Error: {e}"
     return ""
 
-# 3. UI LAYOUT
+#UI
 st.title("Instagram AI Predictor")
 st.write("Generate AI captions and predict your engagement rate instantly.")
 
@@ -57,7 +56,6 @@ if st.sidebar.button("Generate with Gemini"):
 st.divider()
 
 # Main Input Section
-# Using st.session_state to link the AI result to the text box
 default_text = st.session_state.get('caption_input', "")
 caption = st.text_area("Finalize your caption here:", value=default_text, height=150)
 
@@ -89,6 +87,7 @@ if st.button("Predict Engagement", type="primary"):
             st.success("Great tone, the post looks ready to go.")
     else:
         st.error("Please write or generate a caption first.")
+
 
 
 
