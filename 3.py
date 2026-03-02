@@ -61,6 +61,7 @@ if st.button("Predict Engagement"):
 
     st.metric("Predicted Engagement Rate", f"{round(max(0, pred), 2)}%")
     st.write(f"**Sentiment:** {round(sentiment, 2)}")
-        if sentiment < 0:
-            st.info("💡 **AI Tip:** Posts with positive sentiment usually perform 15% better in this niche.")
+    if sentiment < 0:
+        st.info("💡 **AI Tip:** Posts with positive sentiment usually perform 15% better in this niche.")
+
 
