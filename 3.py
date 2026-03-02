@@ -2,67 +2,90 @@ import streamlit as st
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from textblob import TextBlob
-import openai  # <--- It's back!
-import os
-
+import google.generativeai as genai
 import nltk
-nltk.download('punkt')
-nltk.download('punkt_tab') # Required for newer versions of TextBlob
 
-# 1. SETUP OPENAI (You need an API key from platform.openai.com)
-# For a school project, you can hardcode it or use an environment variable
-# Replace the os.environ line with this:
-client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# 1. INITIAL SETUP & DATA
+@st.cache_resource
+def setup_nltk():
+    nltk.download('punkt')
+    nltk.download('punkt_tab')
 
-# 2. LOAD & TRAIN PREDICTIVE MODEL
+setup_nltk()
+
+# Setup Gemini
+try:
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+except Exception as e:
+    st.error("Gemini API Key missing in Secrets!")
+    gemini_model = None
+
+# Train the Predictive Model
 df = pd.read_csv("instagram_data.csv")
 X = df[["caption_length", "hashtag_count", "sentiment_score", "post_hour"]]
 y = df["engagement_rate"]
 model = LinearRegression().fit(X, y)
 
-# 3. GENERATIVE AI FUNCTION (The "Integration")
+# 2. HELPER FUNCTIONS
 def generate_ai_caption(topic):
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o", # Or gpt-3.5-turbo for cheaper testing
-            messages=[
-                {"role": "system", "content": "You are an Instagram marketing expert."},
-                {"role": "user", "content": f"Write a high-engagement caption about: {topic}. Keep it under 150 characters."}
-            ]
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"Error: {e}. (Make sure your API key is set!)"
+    if gemini_model:
+        try:
+            prompt = f"Write a catchy Instagram caption about {topic}. Keep it short and include 3 hashtags."
+            response = gemini_model.generate_content(prompt)
+            return response.text
+        except Exception as e:
+            return f"Error: {e}"
+    return ""
 
-# 4. UI LAYOUT
+# 3. UI LAYOUT
 st.title("📸 InstaGrowth AI Predictor")
+st.write("Generate AI captions and predict your engagement rate instantly.")
 
-# Sidebar for the AI Assistant
-st.sidebar.title("🤖 AI Content Creator")
-topic_idea = st.sidebar.text_input("What is your post about?")
+# Sidebar for AI Generation
+st.sidebar.title("🤖 Gemini AI Assistant")
+topic_idea = st.sidebar.text_input("Enter a topic (e.g., Summer Travel):")
 
-if st.sidebar.button("Generate AI Caption"):
-    with st.sidebar.spinner("AI is thinking..."):
-        ai_suggestion = generate_ai_caption(topic_idea)
-        st.session_state['caption_input'] = ai_suggestion 
+if st.sidebar.button("Generate with Gemini"):
+    if topic_idea:
+        with st.sidebar.spinner("Gemini is writing..."):
+            ai_suggestion = generate_ai_caption(topic_idea)
+            st.session_state['caption_input'] = ai_suggestion
+    else:
+        st.sidebar.warning("Please enter a topic first.")
 
-# 5. MAIN INPUTS
-# This 'value' link is what makes the AI-generated text appear in the box
+st.divider()
+
+# Main Input Section
+# Using st.session_state to link the AI result to the text box
 default_text = st.session_state.get('caption_input', "")
-caption = st.text_area("Write your caption here:", value=default_text)
-hashtags = st.number_input("How many hashtags?", 0, 30, 5)
-hour = st.slider("Posting Hour (24h format)", 0, 23, 18)
+caption = st.text_area("Finalize your caption here:", value=default_text, height=150)
 
-# 6. PREDICTION
-if st.button("Predict Engagement"):
-    cap_len = len(caption)
-    sentiment = TextBlob(caption).sentiment.polarity
-    pred = model.predict([[cap_len, hashtags, sentiment, hour]])[0]
+col1, col2 = st.columns(2)
+with col1:
+    hashtags = st.number_input("How many hashtags?", 0, 30, 5)
+with col2:
+    hour = st.slider("Posting Hour (24h)", 0, 23, 18)
 
-    st.metric("Predicted Engagement Rate", f"{round(max(0, pred), 2)}%")
-    st.write(f"**Sentiment:** {round(sentiment, 2)}")
-    if sentiment < 0:
-        st.info("💡 **AI Tip:** Posts with positive sentiment usually perform 15% better in this niche.")
+# 4. PREDICTION LOGIC
+if st.button("Predict Engagement", type="primary"):
+    if caption:
+        # Feature Engineering
+        cap_len = len(caption)
+        sentiment = TextBlob(caption).sentiment.polarity
+        
+        # ML Prediction
+        pred = model.predict([[cap_len, hashtags, sentiment, hour]])[0]
+        
+        # Display Results
+        st.subheader("Analysis Results")
+        m_col1, m_col2 = st.columns(2)
+        m_col1.metric("Predicted Engagement", f"{round(max(0, pred), 2)}%")
+        m_col2.metric("Sentiment Score", f"{round(sentiment, 2)}")
 
-
-
+        if sentiment < 0:
+            st.info("💡 **AI Tip:** This caption sounds a bit negative. Positive captions usually get 15% more likes!")
+        else:
+            st.success("✨ Great tone! This post looks ready to go.")
+    else:
+        st.error("Please write or generate a caption first.")
