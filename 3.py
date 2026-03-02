@@ -16,7 +16,7 @@ setup_nltk()
 # Setup Gemini
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+    gemini_model = genai.GenerativeModel('gemini-2.5-flash')
 except Exception as e:
     st.error("Gemini API Key missing in Secrets!")
     gemini_model = None
@@ -89,3 +89,4 @@ if st.button("Predict Engagement", type="primary"):
             st.success("✨ Great tone! This post looks ready to go.")
     else:
         st.error("Please write or generate a caption first.")
+
