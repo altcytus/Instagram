@@ -84,9 +84,10 @@ if st.button("Predict Engagement", type="primary"):
         m_col2.metric("Sentiment Score", f"{round(sentiment, 2)}")
 
         if sentiment < 0:
-            st.info("💡 **AI Tip:** This caption sounds a bit negative. Positive captions usually get 15% more likes!")
+            st.info("**AI Tip:** the caption sounds a bit negative. Positive captions usually get 15% more likes.")
         else:
-            st.success("✨ Great tone! This post looks ready to go.")
+            st.success("Great tone, the post looks ready to go.")
     else:
         st.error("Please write or generate a caption first.")
+
 
