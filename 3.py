@@ -5,6 +5,10 @@ from textblob import TextBlob
 import openai  # <--- It's back!
 import os
 
+import nltk
+nltk.download('punkt')
+nltk.download('punkt_tab') # Required for newer versions of TextBlob
+
 # 1. SETUP OPENAI (You need an API key from platform.openai.com)
 # For a school project, you can hardcode it or use an environment variable
 os.environ["OPENAI_API_KEY"] = "your-api-key-here" 
@@ -59,3 +63,4 @@ if st.button("Predict Engagement"):
     st.write(f"**Sentiment:** {round(sentiment, 2)}")
         if sentiment < 0:
             st.info("💡 **AI Tip:** Posts with positive sentiment usually perform 15% better in this niche.")
+
