@@ -2,5 +2,5 @@ streamlit
 pandas
 scikit-learn
 textblob
-google-genai
+google-generativeai
 nltk
